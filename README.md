@@ -561,21 +561,6 @@ All run scripts respect these environment variables:
 | `SLS_FMIN` | (unset) | Override SLS minimum frequency |
 | `SLS_FMAX` | (unset) | Override SLS maximum frequency |
 
-## FDTD kernel variants
-
-Two FDTD implementations are available and compiled together:
-
-**`fdtd.c`** (original): The innermost loops carry PML-boundary branches
-(`if(i1<sim->nb)`, etc.) and `sim->order` tests at every grid point. This is
-the version seen by Tapenade and is the one differentiated.
-
-**`fdtd_split.c`** (optimised): Splits each FDTD step into one interior loop
-(no PML branches, coefficients pre-loaded from arrays) followed by six
-boundary-face loops covering the PML layers where branches are perfectly
-predictable. This version improves auto-vectorisation and branch prediction
-for large models but is **not** seen by Tapenade. The linker resolves
-`fdtd_update_v()` and `fdtd_update_p()` from `fdtd.c` for the AD sources
-and from `fdtd_split.c` for all other calls.
 
 ## Copyright
 
