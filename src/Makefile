@@ -1,6 +1,6 @@
 CC = mpicc
 CFLAGS = -O2 -Wall
-TAPENADE_HOME ?= /home/pyang/Install/tapenade_3.16
+TAPENADE_HOME ?= $(HOME)/Install/tapenade_3.16
 TAPENADE = $(TAPENADE_HOME)/bin/tapenade
 ADKIT = $(TAPENADE_HOME)/ADFirstAidKit
 AD_OUT = ./tapenade_out
