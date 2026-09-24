@@ -1,0 +1,116 @@
+
+%% % =====================================================================
+%% \section{Least-squares fitting of a constant attenuation target}
+%% \label{app:lsq-constq}
+%% % =====================================================================
+
+%% To use $L$ SLS mechanisms to fit nearly constant Q over a frequency band $[\omega_{\min},\omega_{\max}]$,  we minimize the integrated squared misfit \citep{Yang_2016_SFM}
+%% \begin{equation}
+%% \chi_0(Y)
+%% =
+%% \int_{\omega_{\min}}^{\omega_{\max}}
+%% \Bigl(\tilde{Q}^{-1}(\omega;Y)-Q^{-1}\Bigr)^{2}\,\mathrm{d}\omega .
+%% \label{eq:chi0}
+%% \end{equation}
+%% where
+%% \begin{equation}
+%% \tilde{Q}^{-1}(\omega;Y)
+%% =
+%% \frac{\displaystyle\sum_{\ell=1}^{L} Y_\ell\, a_\ell(\omega)}
+%%      {\displaystyle 1-\sum_{\ell=1}^{L} Y_\ell\, b_\ell(\omega)},
+%% \quad
+%% a_\ell(\omega)=\frac{\omega_\ell\,\omega}{\omega_\ell^2+\omega^2},
+%% \qquad
+%% b_\ell(\omega)=\frac{\omega_\ell^{2}}{\omega_\ell^2+\omega^2}.
+%% \label{eq:kernels}
+%% \end{equation}
+%% The unknowns are the dimensionless anelastic coefficients
+%% $Y=(Y_1,\dots,Y_L)^\top$, subject to the box constraint
+%% \begin{equation}
+%% 0\le Y_\ell\le 1,\qquad \ell=1,\dots,L.
+%% \label{eq:constraints}
+%% \end{equation}
+
+
+%% \paragraph{Quadrature discretization}
+%% We evaluate \eqref{eq:chi0} on $M$ logarithmically spaced frequency nodes.
+%% With $s=\ln\omega$, the change of variables
+%% $\mathrm{d}\omega=\omega\,\mathrm{d}s$ gives the nodes
+%% \begin{equation}
+%% s_m=\ln\omega_{\min}+\frac{m-1}{M-1}
+%%       \bigl(\ln\omega_{\max}-\ln\omega_{\min}\bigr),
+%% \qquad m=1,\dots,M,
+%% \end{equation}
+%% so that $\omega_m=e^{s_m}$. Applying the trapezoidal rule in $s$, with
+%% $\Delta s=(\ln\omega_{\max}-\ln\omega_{\min})/(M-1)$, yields the weights
+%% \begin{equation}
+%% w_m=\Delta s\,\omega_m
+%% \begin{cases}
+%% \tfrac12, & m=1 \text{ or } m=M,\\[2pt]
+%% 1, & \text{otherwise}.
+%% \end{cases}
+%% \label{eq:weights}
+%% \end{equation}
+%% The factor $\omega_m$ accounts for the change of variables, so the
+%% objective measures misfit with respect to $\mathrm{d}\omega$, rather than
+%% $\mathrm{d}\ln\omega$. The discrete objective is
+%% \begin{equation}
+%% \chi_0(Y)\approx\sum_{m=1}^{M} w_m
+%% \Bigl(\tilde{Q}^{-1}(\omega_m;Y)-Q^{-1}\Bigr)^{2},
+%% \quad\text{subject to \eqref{eq:constraints}.}
+%% \label{eq:nls}
+%% \end{equation}
+
+%% To compute the analytic Jacobian, define at each node $m$
+%% \begin{equation}
+%% N_m=\sum_{\ell=1}^{L} Y_\ell\, a_\ell(\omega_m),
+%% \qquad
+%% D_m=1-\sum_{\ell=1}^{L} Y_\ell\, b_\ell(\omega_m),
+%% \qquad
+%% \tilde{Q}^{-1}_m=\frac{N_m}{D_m}.
+%% \end{equation}
+%% so that
+%% \begin{equation}
+%% \frac{\partial \tilde{Q}^{-1}_m}{\partial Y_\ell}
+%% =
+%% \frac{a_\ell(\omega_m)+\tilde{Q}^{-1}_m\,b_\ell(\omega_m)}{D_m}.
+%% \end{equation}
+%% leading to the Jacobian $K(Y)\in\mathbb{R}^{M\times L}$ with entries
+%% \begin{equation}
+%% K_{m\ell}(Y)
+%% =
+%% \sqrt{w_m}\,
+%% \frac{a_\ell(\omega_m)+\tilde{Q}^{-1}_m\,b_\ell(\omega_m)}{D_m},
+%% \qquad
+%% m=1,\dots,M,\ \ell=1,\dots,L.
+%% \label{eq:jacobian-constq}
+%% \end{equation}
+
+%% \paragraph{Projected Levenberg--Marquardt iteration}
+%% The code uses a projected Levenberg--Marquardt iteration. At the current
+%% iterate $Y^{(k)}$, define
+%% \begin{equation}
+%%  A_k=K(Y^{(k)})^\top K(Y^{(k)}),\qquad
+%%  b_k=K(Y^{(k)})^\top r(Y^{(k)}),\qquad
+%%  S_k=\operatorname{diag}\bigl(1+(A_k)_{11},\dots,1+(A_k)_{LL}\bigr).
+%% \end{equation}
+%% Starting with $\lambda=10^{-3}$, each iteration proceeds as follows:
+%% \begin{enumerate}
+%% \item Compute $r(Y^{(k)})$, $K(Y^{(k)})$, $A_k$, $b_k$, and
+%%       $\chi_h(Y^{(k)})$. Solve the damped normal equations
+%%       \begin{equation}
+%%       (A_k+\lambda S_k)\,\delta=-b_k.
+%%       \end{equation}
+%% \item Project the trial coefficients componentwise onto $[0,1]^L$:
+%%       \begin{equation}
+%%       \hat{Y}_\ell=\min\bigl(1,\max(0,Y_\ell^{(k)}+\delta_\ell)\bigr).
+%%       \end{equation}
+%% \item If $\chi_h(\hat{Y})<\chi_h(Y^{(k)})$, accept
+%%       $Y^{(k+1)}=\hat{Y}$ and set
+%%       $\lambda\leftarrow\max(0.3\lambda,10^{-12})$.
+%%       Otherwise, set $\lambda\leftarrow\min(3\lambda,10^{12})$
+%%       and recompute the trial step using the same $A_k$, $b_k$, and $S_k$.
+%%       At most 30 trial steps are attempted per iteration.
+%% \item After the trial loop, stop if no step was accepted or if
+%%       $\|b_k\|_2<10^{-12}$. Each run is also limited to 200 iterations.
+%% \end{enumerate}
