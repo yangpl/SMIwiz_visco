@@ -175,6 +175,13 @@ parameter file (via `$(cat inputpar.txt)` shell expansion).
 | `dt` | required | Temporal sampling (s) |
 | `order` | 4 | FD order (4 or 8) |
 | `nb` | 20 | Number of CPML padding layers |
+| `ibox` | 1 | 1=expanding source computing box; 0=full padded domain |
+
+Computing-box bounds are built for each model evaluation and shared by the
+forward, tangent, and checkpointed adjoint sweeps. The adjoint differentiates
+the same restricted updates at each original time index; it does not use a
+separate receiver-centered box. Run `python3 tests/check_computing_box.py` after
+building to check the generated operators in 2D/3D with `ibox=0` and `ibox=1`.
 
 ### Physics
 
