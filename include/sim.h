@@ -17,10 +17,12 @@ typedef struct {
   int eachopt;//stf for each shot
   
   int freesurf;//1, stress-free surface condition;0, no free surface
+  int ibox;//1=use computing box in modelling; 0=no computing box
   float cfl;//CFL number for stability
   float vmax, vmin;//maximum and minimum velocity
   float vphasemax;//maximum phase velocity considering VTI anisotropy
   float rhomax, rhomin;//maximum and minimum density
+  int *i1min, *i1max, *i2min, *i2max, *i3min, *i3max;//computing box
 
   int ri;//radius for Kaiser windowed sinc interpolation, 2*ri+1 points in total    
   float *pmla, *pmlb;//CPML damping factor

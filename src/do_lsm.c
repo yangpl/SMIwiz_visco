@@ -279,6 +279,7 @@ static void lsm_adjoint_test(sim_t *sim, acq_t *acq)
   check_cfl(sim);
   cpml_init(sim);
   extend_model_init(sim);
+  computing_box_init(acq, sim);
   fdtd_init(sim, 0);
   fdtd_init(sim, 1);
 
@@ -413,6 +414,7 @@ static void lsm_adjoint_test(sim_t *sim, acq_t *acq)
   free1float(direction);
   fdtd_free(sim, 1);
   fdtd_free(sim, 0);
+  computing_box_free(sim);
   extend_model_free(sim);
   cpml_free(sim);
   lsm_free_workspace(w);
@@ -461,6 +463,7 @@ static void lsm_solve_cg(sim_t *sim, acq_t *acq)
   check_cfl(sim);
   cpml_init(sim);
   extend_model_init(sim);
+  computing_box_init(acq, sim);
   fdtd_init(sim, 0);
   fdtd_init(sim, 1);
 
@@ -590,6 +593,7 @@ static void lsm_solve_cg(sim_t *sim, acq_t *acq)
   
   fdtd_free(sim, 1);
   fdtd_free(sim, 0);
+  computing_box_free(sim);
   extend_model_free(sim);
   cpml_free(sim);
   lsm_free_workspace(&w);
@@ -642,6 +646,7 @@ static void lsm_solve_fista(sim_t *sim, acq_t *acq)
   check_cfl(sim);
   cpml_init(sim);
   extend_model_init(sim);
+  computing_box_init(acq, sim);
   fdtd_init(sim, 0);
   fdtd_init(sim, 1);
 
@@ -771,6 +776,7 @@ static void lsm_solve_fista(sim_t *sim, acq_t *acq)
 
   fdtd_free(sim, 1);
   fdtd_free(sim, 0);
+  computing_box_free(sim);
   extend_model_free(sim);
   cpml_free(sim);
   lsm_free_workspace(&w);
@@ -824,12 +830,14 @@ void lsm_hessian_vector(sim_t *sim, acq_t *acq, int family, int npar,
   check_cfl(sim);
   cpml_init(sim);
   extend_model_init(sim);
+  computing_box_init(acq, sim);
   fdtd_init(sim, 0);
   fdtd_init(sim, 1);
   lsm_tlm(sim, acq, family, npar, idxpar, v, &w, dsyn);
   lsm_adj(sim, acq, dsyn, family, npar, idxpar, &w, Hv, greduced);
   fdtd_free(sim, 1);
   fdtd_free(sim, 0);
+  computing_box_free(sim);
   extend_model_free(sim);
   cpml_free(sim);
   lsm_free_workspace(&w);

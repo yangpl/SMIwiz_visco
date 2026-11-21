@@ -4,6 +4,11 @@
 #include "sim.h"
 #include "acq.h"
 
+/* Build once per model evaluation, then share the same time-indexed bounds
+ * between the primal, tangent, and checkpointed reverse sweeps. */
+void computing_box_init(acq_t *acq, sim_t *sim);
+void computing_box_free(sim_t *sim);
+
 void modelling(sim_t *sim, acq_t *acq,
                float ***p, float ***vz, float ***vx, float ***vy,
                float ***memD1p, float ***memD2p, float ***memD3p,

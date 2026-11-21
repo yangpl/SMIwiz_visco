@@ -42,6 +42,7 @@ void do_invert_source(sim_t *sim, acq_t *acq)
   check_cfl(sim);
   cpml_init(sim);
   extend_model_init(sim);
+  computing_box_init(acq, sim);
   fdtd_init(sim, 0);
   fdtd_null(sim, 0);
   modelling(sim, acq,
@@ -51,6 +52,7 @@ void do_invert_source(sim_t *sim, acq_t *acq)
             sim->rho, sim->qinv, sim->vpmod, sim->rhomod, sim->qinvmod,
             sim->kappa, sim->buz, sim->bux, sim->buy, sim->dcal);
   fdtd_free(sim, 0);
+  computing_box_free(sim);
   extend_model_free(sim);
   cpml_free(sim);
 

@@ -10,11 +10,11 @@
 void fdtd_update_v(sim_t *sim, float ***p, float ***vz, float ***vx,
                    float ***vy, float ***memD1p, float ***memD2p,
                    float ***memD3p, float ***buz, float ***bux,
-                   float ***buy);
+                   float ***buy, int it);
 void fdtd_update_p(sim_t *sim, float ***p, float ***vz, float ***vx,
                    float ***vy, float ***memD1vz, float ***memD2vx,
                    float ***memD3vy, float ***xi1, float ***xi2,
-                   float ***xi3, float ***kappa, float ***qinvmod);
+                   float ***xi3, float ***kappa, float ***qinvmod, int it);
 void inject_source(sim_t *sim, acq_t *acq, float ***p, float stf_it);
 void extract_wavefield(sim_t *sim, acq_t *acq, float ***p, float **dcal,
                        int it);
@@ -38,7 +38,7 @@ void modelling(sim_t *sim, acq_t *acq,
   int nt = sim->nt;
   int nsnap = sim->nsnap;
   /* TAPENADE-IGNORE-BEGIN */
-  double t0, t_update_v, t_update_p, t_inject_src, t_extract_field;
+  double t0 = 0.0, t_update_v, t_update_p, t_inject_src, t_extract_field;
   
   t_update_v = 0.;
   t_update_p = 0.;
@@ -57,7 +57,7 @@ void modelling(sim_t *sim, acq_t *acq,
     if(iproc==0) t0 = MPI_Wtime();
     /* TAPENADE-IGNORE-END */
     fdtd_update_v(sim, p, vz, vx, vy, memD1p, memD2p, memD3p,
-                  buz, bux, buy);
+                  buz, bux, buy, it);
     /* TAPENADE-IGNORE-BEGIN */
     if(iproc==0) t_update_v += MPI_Wtime()-t0;
     /* TAPENADE-IGNORE-END */
@@ -66,7 +66,7 @@ void modelling(sim_t *sim, acq_t *acq,
     if(iproc==0) t0 = MPI_Wtime();
     /* TAPENADE-IGNORE-END */
     fdtd_update_p(sim, p, vz, vx, vy, memD1vz, memD2vx, memD3vy,
-                  xi1, xi2, xi3, kappa, qinvmod);
+                  xi1, xi2, xi3, kappa, qinvmod, it);
     /* TAPENADE-IGNORE-BEGIN */
     if(iproc==0) t_update_p += MPI_Wtime()-t0;
     /* TAPENADE-IGNORE-END */

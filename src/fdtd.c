@@ -139,7 +139,7 @@ void fdtd_free(sim_t *sim, int adj)
 
 
 
-void fdtd_update_v(sim_t *sim, float ***p, float ***vz, float ***vx, float ***vy, float ***memD1p, float ***memD2p, float ***memD3p, float ***buz, float ***bux, float ***buy)
+void fdtd_update_v(sim_t *sim, float ***p, float ***vz, float ***vx, float ***vy, float ***memD1p, float ***memD2p, float ***memD3p, float ***buz, float ***bux, float ***buy, int it)
 {
   int i1, i2, i3, j1, j2, j3, k1, k2, k3;
   float D1p, D2p, D3p;
@@ -149,6 +149,7 @@ void fdtd_update_v(sim_t *sim, float ***p, float ***vz, float ***vx, float ***vy
   float _d2 = 1./sim->d2;
   float _d3 = 1./sim->d3;
 
+  /* main validates order as either 4 or 8. */
   if(sim->order==4){
     i1min = 1;
     i1max = sim->n1pad-3;
@@ -156,7 +157,7 @@ void fdtd_update_v(sim_t *sim, float ***p, float ***vz, float ***vx, float ***vy
     i2max = sim->n2pad-3;
     i3min = (sim->n3>1)?1:0;
     i3max = (sim->n3>1)?(sim->n3pad-3):0;
-  }else if(sim->order==8){
+  }else{
     i1min = 3;
     i1max = sim->n1pad-5;
     i2min = 3;
@@ -164,8 +165,17 @@ void fdtd_update_v(sim_t *sim, float ***p, float ***vz, float ***vx, float ***vy
     i3min = (sim->n3>1)?3:0;
     i3max = (sim->n3>1)?(sim->n3pad-5):0;
   }
+  if(sim->ibox){
+    /* Computing-box limits are pressure-node bounds. A forward pressure
+     * derivative also updates the staggered velocity below each minimum. */
+    i1min = MAX(sim->i1min[it]-1, i1min);
+    i1max = MIN(sim->i1max[it], i1max);
+    i2min = MAX(sim->i2min[it]-1, i2min);
+    i2max = MIN(sim->i2max[it], i2max);
+    i3min = (sim->n3>1)?MAX(sim->i3min[it]-1, i3min):0;
+    i3max = (sim->n3>1)?MIN(sim->i3max[it], i3max):0;
+  }
   if(sim->freesurf) i1min = sim->nb;
-
   
 #ifdef _OPENMP
 #pragma omp parallel for default(none)					\
@@ -182,7 +192,7 @@ void fdtd_update_v(sim_t *sim, float ***p, float ***vz, float ***vx, float ***vy
 	    -0.041666666666666664*(p[i3][i2][i1+2]-p[i3][i2][i1-1]);
 	  D2p = 1.125*(p[i3][i2+1][i1]-p[i3][i2][i1])
 	    -0.041666666666666664*(p[i3][i2+2][i1]-p[i3][i2-1][i1]);
-	}else if(sim->order==8){
+	}else{
 	  D1p = 1.196289062500000*(p[i3][i2][i1+1]-p[i3][i2][i1])
 	    -0.079752604166667*(p[i3][i2][i1+2]-p[i3][i2][i1-1])
 	    +0.009570312500000*(p[i3][i2][i1+3]-p[i3][i2][i1-2])
@@ -223,7 +233,7 @@ void fdtd_update_v(sim_t *sim, float ***p, float ***vz, float ***vx, float ***vy
 	  if(sim->order==4){
 	    D3p = 1.125*(p[i3+1][i2][i1]-p[i3][i2][i1])
 	      -0.041666666666666664*(p[i3+2][i2][i1]-p[i3-1][i2][i1]);
-	  }else if(sim->order==8){
+	  }else{
 	    D3p = 1.196289062500000*(p[i3+1][i2][i1]-p[i3][i2][i1])
 	      -0.079752604166667*(p[i3+2][i2][i1]-p[i3-1][i2][i1])
 	      +0.009570312500000*(p[i3+3][i2][i1]-p[i3-2][i2][i1])
@@ -262,7 +272,7 @@ void fdtd_update_v(sim_t *sim, float ***p, float ***vz, float ***vx, float ***vy
 	}
       }
 
-    }else if(sim->order==8){
+    }else{
 #ifdef _OPENMP
 #pragma omp parallel for default(none)		\
   schedule(static)				\
@@ -287,7 +297,7 @@ void fdtd_update_v(sim_t *sim, float ***p, float ***vz, float ***vx, float ***vy
 void fdtd_update_p(sim_t *sim, float ***p, float ***vz, float ***vx, float ***vy,
                    float ***memD1vz, float ***memD2vx, float ***memD3vy,
                    float ***xi1, float ***xi2, float ***xi3,
-                   float ***kappa, float ***qinvmod)
+                   float ***kappa, float ***qinvmod, int it)
 {
   int i1, i2, i3, j1, j2, j3, k1, k2, k3;
   float D1vz, D2vx, D3vy, divv, relax_term, xi_old, xi_new;
@@ -297,6 +307,7 @@ void fdtd_update_p(sim_t *sim, float ***p, float ***vz, float ***vx, float ***vy
   float _d2 = 1./sim->d2;
   float _d3 = 1./sim->d3;
 
+  /* main validates order as either 4 or 8. */
   if(sim->order==4){
     i1min = 2;
     i1max = sim->n1pad-3;
@@ -304,7 +315,7 @@ void fdtd_update_p(sim_t *sim, float ***p, float ***vz, float ***vx, float ***vy
     i2max = sim->n2pad-3;
     i3min = (sim->n3>1)?2:0;
     i3max = (sim->n3>1)?(sim->n3pad-3):0;
-  }else if(sim->order==8){
+  }else{
     i1min = 4;
     i1max = sim->n1pad-5;
     i2min = 4;
@@ -312,7 +323,14 @@ void fdtd_update_p(sim_t *sim, float ***p, float ***vz, float ***vx, float ***vy
     i3min = (sim->n3>1)?4:0;
     i3max = (sim->n3>1)?(sim->n3pad-5):0;
   }
-  
+  if(sim->ibox){
+    i1min = MAX(sim->i1min[it], i1min);
+    i1max = MIN(sim->i1max[it], i1max);
+    i2min = MAX(sim->i2min[it], i2min);
+    i2max = MIN(sim->i2max[it], i2max);
+    i3min = (sim->n3>1)?MAX(sim->i3min[it], i3min):0;
+    i3max = (sim->n3>1)?MIN(sim->i3max[it], i3max):0;
+  }
   if(sim->freesurf) i1min = sim->nb;
   
 #ifdef _OPENMP
@@ -332,7 +350,7 @@ void fdtd_update_p(sim_t *sim, float ***p, float ***vz, float ***vx, float ***vy
 	    -0.041666666666666664*(vz[i3][i2][i1+1]-vz[i3][i2][i1-2]);
 	  D2vx = 1.125*(vx[i3][i2][i1]-vx[i3][i2-1][i1])
 	    -0.041666666666666664*(vx[i3][i2+1][i1]-vx[i3][i2-2][i1]);
-	}else if(sim->order==8){
+	}else{
 	  D1vz = 1.196289062500000*(vz[i3][i2][i1]-vz[i3][i2][i1-1])
 	    -0.079752604166667*(vz[i3][i2][i1+1]-vz[i3][i2][i1-2])
 	    +0.009570312500000*(vz[i3][i2][i1+2]-vz[i3][i2][i1-3])
@@ -368,7 +386,7 @@ void fdtd_update_p(sim_t *sim, float ***p, float ***vz, float ***vx, float ***vy
 	  if(sim->order==4){
 	    D3vy = 1.125*(vy[i3][i2][i1]-vy[i3-1][i2][i1])
 	      -0.041666666666666664*(vy[i3+1][i2][i1]-vy[i3-2][i2][i1]);	  
-	  }else if(sim->order==8){
+	  }else{
 	    D3vy = 1.196289062500000*(vy[i3][i2][i1]-vy[i3-1][i2][i1])
 	      -0.079752604166667*(vy[i3+1][i2][i1]-vy[i3-2][i2][i1])
 	      +0.009570312500000*(vy[i3+2][i2][i1]-vy[i3-3][i2][i1])
@@ -428,7 +446,7 @@ void fdtd_update_p(sim_t *sim, float ***p, float ***vz, float ***vx, float ***vy
 	  p[i3][i2][sim->nb-1] = -p[i3][i2][sim->nb+1];
 	}
       }
-    }else if(sim->order==8){
+    }else{
 #ifdef _OPENMP
 #pragma omp parallel for default(none)		\
   schedule(static)				\

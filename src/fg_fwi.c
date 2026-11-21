@@ -100,6 +100,7 @@ double fg_fwi_eval(float *x, float *g)
   check_cfl(sim);
   cpml_init(sim);
   extend_model_init(sim);
+  computing_box_init(acq, sim);
   fdtd_init(sim, 0);//adj=0
   fdtd_init(sim, 1);//adj=1
   fdtd_null(sim, 0);//adj=0
@@ -220,6 +221,7 @@ double fg_fwi_eval(float *x, float *g)
   free3float(qinvmodb);
   fdtd_free(sim, 0);//adj=0
   fdtd_free(sim, 1);//adj=1
+  computing_box_free(sim);
   extend_model_free(sim);
   cpml_free(sim);
 

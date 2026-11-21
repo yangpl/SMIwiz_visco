@@ -121,6 +121,8 @@ int main(int argc, char* argv[])
   if(sim->eachopt!=0 && sim->eachopt!=1) err("eachopt must be 0 or 1");
   if(sim->freesurf!=0 && sim->freesurf!=1) err("freesurf must be 0 or 1");
   if(sim->freq<=0) err("freq must be positive");
+  if(!getparint("ibox", &sim->ibox)) sim->ibox = 1;//1=use computing box; 0=not use
+  if(sim->ibox!=0 && sim->ibox!=1) err("ibox must be 0 or 1");
   
   /* Three standard-linear-solid mechanisms are fitted to a constant-Q
    * target. nrelax=0 remains the exact acoustic compatibility mode. */
@@ -162,6 +164,7 @@ int main(int argc, char* argv[])
     printf("ri=%d (interpolation radius ri=order/4)\n", sim->ri);
     printf("eachopt=%d (1=one source per shot; 0=one source for all shots)\n", sim->eachopt);
     printf("freesurf=%d (1=with free surface; 0=no free surface)\n", sim->freesurf);
+    printf("ibox=%d (1=use computing box; 0=not use)\n", sim->ibox);
     printf("nrelax=%d (0=acoustic; 3=visco-acoustic with 3 SLS mechanisms)\n", sim->nrelax);
     if(sim->nrelax==3){
       int il;

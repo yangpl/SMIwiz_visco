@@ -9,6 +9,7 @@
 #include "cstd.h"
 #include "sim.h"
 #include "acq.h"
+#include "modelling.h"
 
 void check_cfl(sim_t *sim);
 
@@ -23,16 +24,6 @@ void cpml_init(sim_t *sim);
 void cpml_free(sim_t *sim);
 
 
-void modelling(sim_t *sim, acq_t *acq,
-               float ***p, float ***vz, float ***vx, float ***vy,
-               float ***memD1p, float ***memD2p, float ***memD3p,
-               float ***memD1vz, float ***memD2vx, float ***memD3vy,
-               float ***xi1, float ***xi2, float ***xi3,
-               float ***vp, float ***rho, float ***qinv,
-               float ***vpmod, float ***rhomod, float ***qinvmod,
-               float ***kappa, float ***buz, float ***bux, float ***buy,
-               float **dcal);
-
 void write_data(sim_t *sim, acq_t *acq);
 
 void do_modelling(sim_t *sim, acq_t *acq)
@@ -41,6 +32,7 @@ void do_modelling(sim_t *sim, acq_t *acq)
 
   cpml_init(sim);
   extend_model_init(sim);
+  computing_box_init(acq, sim);
   fdtd_init(sim, 0);
   fdtd_null(sim, 0);
 
@@ -54,6 +46,7 @@ void do_modelling(sim_t *sim, acq_t *acq)
             sim->dcal);
   write_data(sim, acq);
   
+  computing_box_free(sim);
   extend_model_free(sim);
   fdtd_free(sim, 0);
   cpml_free(sim);
